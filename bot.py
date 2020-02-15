@@ -79,9 +79,9 @@ async def players(ctx):
 
     except:
         embed = discord.Embed(
-            title=f"Server Offline 😔",
-            description="OOPSIE WOOPSIE!!",
-            color=discord.Color.from_rgb(107, 181, 124)
+            title=f"Can't Connect",
+            description="OOPSIE WOOPSIE!! UwU It wooks wike dis sewvew is offwine 😢",
+            color=discord.Color.from_rgb(255, 100, 100)
         )
 
     await ctx.send(embed=embed)
