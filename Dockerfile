@@ -1,6 +1,6 @@
 FROM python:3.8
 
-LABEL Name=mcstatus Version=0.0.1
+LABEL Name=mcstatus
 
 WORKDIR /app
 ADD . /app
