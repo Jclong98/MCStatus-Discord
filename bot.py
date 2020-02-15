@@ -61,20 +61,28 @@ async def players(ctx):
     """
     sends a message in the chat with the current/max players and a list of those players' names
     """
-    server = MinecraftServer.lookup(f"{IP}:{PORT}")
-    status = server.status()
+    try:
+        server = MinecraftServer.lookup(f"{IP}:{PORT}")
+        status = server.status()
 
-    # if nobody is online, sample will not appear. this makes it default to an empty list
-    player_list = status.raw['players'].get('sample', [])
+        # if nobody is online, sample will not appear. this makes it default to an empty list
+        player_list = status.raw['players'].get('sample', [])
 
-    # each player has a dict of player_id and name.
-    player_names = [p['name'] for p in player_list]
+        # each player has a dict of player_id and name.
+        player_names = [p['name'] for p in player_list]
 
-    embed = discord.Embed(
-        title=f"{status.players.online}/{status.players.max} players online",
-        description="\n".join(player_names),
-        color=discord.Color.from_rgb(107, 181, 124)
-    )
+        embed = discord.Embed(
+            title=f"{status.players.online}/{status.players.max} players online",
+            description="\n".join(player_names),
+            color=discord.Color.from_rgb(107, 181, 124)
+        )
+
+    except:
+        embed = discord.Embed(
+            title=f"Server Offline 😔",
+            description="OOPSIE WOOPSIE!!",
+            color=discord.Color.from_rgb(107, 181, 124)
+        )
 
     await ctx.send(embed=embed)
 
