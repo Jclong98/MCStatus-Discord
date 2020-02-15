@@ -81,4 +81,4 @@ async def players(ctx):
 # loading credentials
 creds = json.load(open("./credentials.json"))
 
-bot.run(creds["discord_secret_key_testbot"])
+bot.run(creds["discord_secret_key"])
