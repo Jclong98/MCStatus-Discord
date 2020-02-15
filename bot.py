@@ -2,7 +2,7 @@ import asyncio
 import json
 
 import discord
-import requests
+from mcstatus import MinecraftServer
 
 
 class MyClient(discord.Client):
@@ -22,61 +22,46 @@ class MyClient(discord.Client):
 
     async def on_ready(self):
         """happens when the bot is ready"""
+        
         print('Logged in as')
         print(self.user.name)
         print(self.user.id)
         print('------')
         
-        # getting players and initially setting the status
-        await self.get_players(ip=self.ip, port=self.port)
+        # grabbing the amount of players on startup
+        await self.get_players()
+        
 
     async def update_player_count(self):
         """the background task being created and run in __init__()"""
+
         await self.wait_until_ready()
 
         # infinite loop
         while True:
             # every 60 seconds, get the amount of players on the server
-            await self.get_players(ip=self.ip, port=self.port)
+            await self.get_players()
             await asyncio.sleep(60)
 
-    async def get_players(self, ip="localhost", port="25565"):
-        """
-        a function to get the status of the server and display 
-        the results as the client's activity
 
-        parameters:
-            ip (str): the ip of a minecraft server
-            port (str): port of the server address
+    async def get_players(self):
+        """
+        this function uses mcstatus to get the amount of 
+        players on the server and change the discord bot's 
+        status to the amount online / the max amount of players
         """
 
-        # parsing the api json into a dictionary
-        r = requests.get(f"http://mcapi.us/server/status?ip={ip}&port={port}")
-        server_dict = json.loads(r.text)
-
-        activity = discord.CustomActivity(
-            name="Server Offline"
-        )
-
-        # if the server is online, then the server is up
-        if server_dict['online']:
-
-            # if the server is online, get the current players
-            current_players = server_dict['players']['now']
-            max_players = server_dict['players']['max']
-
+        try:
+            server = MinecraftServer.lookup(f"{self.ip}:{self.port}")
+            server_status = server.status()
+            
             # set the status to online
             status = discord.Status.online
+            activity = discord.Game(name=f": {server_status.players.online}/{server_status.players.max}")
 
-            activity = discord.Game(
-                name=f": {current_players}/{max_players}",
-            )
-
-        else:
+        except Exception as e:
             status = discord.Status.do_not_disturb
-            activity = discord.Game(
-                name="Server Offline"
-            )
+            activity = discord.Game(name="Server Offline")
 
         # pushing the new status and activity
         await self.change_presence(
