@@ -1,58 +1,33 @@
+import argparse
 import asyncio
 import json
+import random
 
 import discord
+from discord.ext import commands
 from mcstatus import MinecraftServer
 
+parser = argparse.ArgumentParser()
+parser.add_argument('-ip', '--ip', help="the address of a minecraft server", default='localhost')
+parser.add_argument('-p', '--port', help="the port of a minecraft server", default='25565')
+args = parser.parse_args()
 
-class MyClient(discord.Client):
+IP = args.ip
+PORT = args.port
+
+bot = commands.Bot(command_prefix='?')
+
+async def update_status():
     """
-    a modified version of https://github.com/Rapptz/discord.py/blob/master/examples/background_task.py
-    to keep track of a minecraft servers players
+    this function uses mcstatus to get the amount of 
+    players on the server and change the discord bot's 
+    status to the amount online / max amount of players
     """
+    await bot.wait_until_ready()
 
-    def __init__(self, ip="localhost", port="25565", *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        self.ip = ip
-        self.port = port
-
-        # create the background task and run it in the background
-        self.bg_task = self.loop.create_task(self.update_player_count())
-
-    async def on_ready(self):
-        """happens when the bot is ready"""
-        
-        print('Logged in as')
-        print(self.user.name)
-        print(self.user.id)
-        print('------')
-        
-        # grabbing the amount of players on startup
-        await self.get_players()
-        
-
-    async def update_player_count(self):
-        """the background task being created and run in __init__()"""
-
-        await self.wait_until_ready()
-
-        # infinite loop
-        while True:
-            # every 60 seconds, get the amount of players on the server
-            await self.get_players()
-            await asyncio.sleep(60)
-
-
-    async def get_players(self):
-        """
-        this function uses mcstatus to get the amount of 
-        players on the server and change the discord bot's 
-        status to the amount online / the max amount of players
-        """
-
+    while True:
         try:
-            server = MinecraftServer.lookup(f"{self.ip}:{self.port}")
+            server = MinecraftServer.lookup(f"{IP}:{PORT}")
             server_status = server.status()
             
             # set the status to online
@@ -64,24 +39,46 @@ class MyClient(discord.Client):
             activity = discord.Game(name="Server Offline")
 
         # pushing the new status and activity
-        await self.change_presence(
+        await bot.change_presence(
             status=status,
             activity=activity
         )
 
+        await asyncio.sleep(30)
 
-if __name__ == "__main__":
-    
-    import argparse
+# running update_status in the background
+bot.loop.create_task(update_status())
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-ip', '--ip', help="the address of a minecraft server", default='localhost')
-    parser.add_argument('-p', '--port', help="the port of a minecraft server", default='25565')
+@bot.event
+async def on_ready():
+    print('Logged in as')
+    print(bot.user.name)
+    print(bot.user.id)
+    print('------')
 
-    # loading credentials
-    creds = json.load(open("./credentials.json"))
+@bot.command()
+async def players(ctx):
+    """
+    sends a message in the chat with the current/max players and a list of those players' names
+    """
+    server = MinecraftServer.lookup(f"{IP}:{PORT}")
+    status = server.status()
 
-    args = parser.parse_args()
+    # if nobody is online, sample will not appear. this makes it default to an empty list
+    player_list = status.raw['players'].get('sample', [])
 
-    client = MyClient(ip=args.ip, port=args.port)
-    client.run(creds['discord_secret_key'])
+    # each player has a dict of player_id and name.
+    player_names = [p['name'] for p in player_list]
+
+    embed = discord.Embed(
+        title=f"{status.players.online}/{status.players.max} players online",
+        description="\n".join(player_names),
+        color=discord.Color.from_rgb(107, 181, 124)
+    )
+
+    await ctx.send(embed=embed)
+
+# loading credentials
+creds = json.load(open("./credentials.json"))
+
+bot.run(creds["discord_secret_key_testbot"])
