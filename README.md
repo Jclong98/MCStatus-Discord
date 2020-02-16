@@ -8,11 +8,18 @@ This bot was made to keep track of how many players are in a minecraft server at
 usage: bot.py [-h] [-ip IP] [-p PORT]
 
 optional arguments:
-  -h, --help            show this help message and exit
-  -ip IP, --ip IP       the address of a minecraft server
-  -p PORT, --port PORT  the port of a minecraft server
+  -h, --help                            show this help message and exit
+  -ip IP, --ip IP                       the address of a minecraft server
+  -p PORT, --port PORT                  the port of a minecraft server
+  -f FREQUENCY, --frequency FREQUENCY   amount of time (in seconds) the bot will wait to refresh the discord status
 
 ```
+
+Command Prefix: `?`
+### Commands:
+- players: displays an embed of the amount of players online, as well as a list of their names
+
+---
 
 ## Getting Started:
 

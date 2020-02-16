@@ -10,6 +10,7 @@ from mcstatus import MinecraftServer
 parser = argparse.ArgumentParser()
 parser.add_argument('-ip', '--ip', help="the address of a minecraft server", default='localhost')
 parser.add_argument('-p', '--port', help="the port of a minecraft server", default='25565')
+parser.add_argument('-f', '--frequency', help="amount of time (in seconds) the bot will wait to refresh the discord status", default=30)
 args = parser.parse_args()
 
 IP = args.ip
